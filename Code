@@ -1,0 +1,245 @@
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Scanner;
+
+public class LibraryManagementSystem {
+    static class Book {
+        String title;
+        String author;
+        String status;
+        ArrayList<String> reservationList = new ArrayList<>();
+        ArrayList<String> borrowHistory = new ArrayList<>();
+
+        Book(String title, String author) {
+            this.title = title;
+            this.author = author;
+            this.status = "Available";
+        }
+
+        void borrow(String user) {
+            if (status.equals("Available")) {
+                status = "Borrowed";
+                borrowHistory.add(user + " borrowed on " + LocalDate.now());
+                System.out.println("\"" + title + "\" has been borrowed by " + user + ".");
+            } else {
+                System.out.println("\"" + title + "\" is not available for borrowing.");
+            }
+        }
+
+        void returnBook() {
+            if (status.equals("Borrowed")) {
+                status = "Available";
+                System.out.println("\"" + title + "\" has been returned.");
+                if (!reservationList.isEmpty()) {
+                    String nextUser = reservationList.remove(0);
+                    System.out.println("Notifying " + nextUser + " that the book is now available.");
+                }
+            } else {
+                System.out.println("\"" + title + "\" was not borrowed.");
+            }
+        }
+
+        void reserve(String user) {
+            if (status.equals("Borrowed")) {
+                if (!reservationList.contains(user)) {
+                    reservationList.add(user);
+                    System.out.println(user + " has been added to the reservation list for \"" + title + "\".");
+                } else {
+                    System.out.println(user + " is already on the reservation list.");
+                }
+            } else {
+                System.out.println("\"" + title + "\" is not currently borrowed. No need for a reservation.");
+            }
+        }
+
+        void markAsLost() {
+            if (!status.equals("Lost")) {
+                status = "Lost";
+                System.out.println("\"" + title + "\" has been marked as lost.");
+            } else {
+                System.out.println("\"" + title + "\" is already marked as lost.");
+            }
+        }
+
+        void markAsDamaged() {
+            if (!status.equals("Damaged")) {
+                status = "Damaged";
+                System.out.println("\"" + title + "\" has been marked as damaged.");
+            } else {
+                System.out.println("\"" + title + "\" is already marked as damaged.");
+            }
+        }
+
+        void display() {
+            System.out.println("Title: " + title + ", Author: " + author + ", Status: " + status);
+            if (!borrowHistory.isEmpty()) {
+                System.out.println("Borrow History: " + String.join("; ", borrowHistory));
+            }
+            if (!reservationList.isEmpty()) {
+                System.out.println("Reservation List: " + String.join(", ", reservationList));
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        HashMap<String, Book> library = new HashMap<>();
+        Scanner scanner = new Scanner(System.in);
+        boolean running = true;
+
+        library.put("Java Programming", new Book("Java Programming", "John Doe"));
+        library.put("Inception", new Book("Inception", "Christopher Nolan"));
+
+        while (running) {
+            displayMenu();
+
+            int choice = getValidInteger(scanner, "Choose an option: ");
+            scanner.nextLine();
+            switch (choice) {
+                case 1:
+                    displayAllBooks(library);
+                    break;
+
+                case 2:
+                    borrowBook(library, scanner);
+                    break;
+
+                case 3:
+                    returnBook(library, scanner);
+                    break;
+
+                case 4:
+                    addNewBook(library, scanner);
+                    break;
+
+                case 5:
+                    markBookAsLost(library, scanner);
+                    break;
+
+                case 6:
+                    markBookAsDamaged(library, scanner);
+                    break;
+
+                case 7:
+                    reserveBook(library, scanner);
+                    break;
+
+                case 8:
+                    running = false;
+                    System.out.println("Exiting Library Management System. Goodbye!");
+                    break;
+
+                default:
+                    System.out.println("Invalid option. Please try again.");
+            }
+        }
+
+        scanner.close();
+    }
+
+    private static void displayMenu() {
+        System.out.println("\n===== Library Management System =====");
+        System.out.println("1. Display All Books");
+        System.out.println("2. Borrow Book");
+        System.out.println("3. Return Book");
+        System.out.println("4. Add New Book");
+        System.out.println("5. Mark as Lost");
+        System.out.println("6. Mark as Damaged");
+        System.out.println("7. Reserve Book");
+        System.out.println("8. Exit");
+    }
+
+    private static int getValidInteger(Scanner scanner, String message) {
+        while (true) {
+            System.out.print(message);
+            if (scanner.hasNextInt()) {
+                return scanner.nextInt();
+            } else {
+                System.out.println("Invalid input. Please enter a valid number.");
+                scanner.next();
+            }
+        }
+    }
+
+    private static void displayAllBooks(HashMap<String, Book> library) {
+        if (library.isEmpty()) {
+            System.out.println("The library is empty.");
+        } else {
+            for (Book book : library.values()) {
+                book.display();
+            }
+        }
+    }
+
+    private static void borrowBook(HashMap<String, Book> library, Scanner scanner) {
+        System.out.print("Enter your name: ");
+        String user = scanner.nextLine();
+        System.out.print("Enter the title to borrow: ");
+        String title = scanner.nextLine();
+        Book book = library.get(title);
+        if (book != null) {
+            book.borrow(user);
+        } else {
+            System.out.println("Book not found.");
+        }
+    }
+
+    private static void returnBook(HashMap<String, Book> library, Scanner scanner) {
+        System.out.print("Enter the title to return: ");
+        String title = scanner.nextLine();
+        Book book = library.get(title);
+        if (book != null) {
+            book.returnBook();
+        } else {
+            System.out.println("Book not found.");
+        }
+    }
+
+    private static void addNewBook(HashMap<String, Book> library, Scanner scanner) {
+        System.out.print("Enter the title: ");
+        String title = scanner.nextLine();
+        System.out.print("Enter the author: ");
+        String author = scanner.nextLine();
+        if (!library.containsKey(title)) {
+            library.put(title, new Book(title, author));
+            System.out.println("\"" + title + "\" has been added to the library.");
+        } else {
+            System.out.println("A book with this title already exists.");
+        }
+    }
+
+    private static void markBookAsLost(HashMap<String, Book> library, Scanner scanner) {
+        System.out.print("Enter the title to mark as lost: ");
+        String title = scanner.nextLine();
+        Book book = library.get(title);
+        if (book != null) {
+            book.markAsLost();
+        } else {
+            System.out.println("Book not found.");
+        }
+    }
+
+    private static void markBookAsDamaged(HashMap<String, Book> library, Scanner scanner) {
+        System.out.print("Enter the title to mark as damaged: ");
+        String title = scanner.nextLine();
+        Book book = library.get(title);
+        if (book != null) {
+            book.markAsDamaged();
+        } else {
+            System.out.println("Book not found.");
+        }
+    }
+
+    private static void reserveBook(HashMap<String, Book> library, Scanner scanner) {
+        System.out.print("Enter your name: ");
+        String user = scanner.nextLine();
+        System.out.print("Enter the title to reserve: ");
+        String title = scanner.nextLine();
+        Book book = library.get(title);
+        if (book != null) {
+            book.reserve(user);
+        } else {
+            System.out.println("Book not found.");
+        }
+    }
+}
